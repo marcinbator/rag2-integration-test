@@ -14,7 +14,7 @@ def start_server():
         (r"/ws/test/", PongBot)
     ], websocket_ping_interval=10, websocket_ping_timeout=30)
     app.listen(8000)
-    
+
     try:
         tornado.ioloop.IOLoop.current().start()
     except KeyboardInterrupt:

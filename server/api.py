@@ -15,7 +15,7 @@ guest_users = 0
 def verify_jwt(token):
     if os.getenv("PRODUCTION", 'false').lower() == "false":
         return True
-    
+
     load_dotenv()
     TOKEN_VERIFY_URL = os.getenv('TOKEN_VERIFY_URL')
     headers = {"Authorization": "Bearer " + token}

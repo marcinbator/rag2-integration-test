@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a testing tool for visualisation of data flow in framework created for RAG2 project 
+This is a testing tool for visualisation of data flow in framework created for RAG2 project
 (integrating web minigames with remote AI models) using abstract websocket definition.
 
 ## Prerequisities
