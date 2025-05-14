@@ -2,12 +2,14 @@ import json
 import os
 import time
 from abc import abstractmethod
-from typing import final
+from typing import final, Any
 from urllib.parse import urlparse, parse_qs
 
 import requests
 from dotenv import load_dotenv
 from tornado.websocket import WebSocketHandler
+
+from server.socket_data import SocketData
 
 guest_users = 0
 
@@ -36,7 +38,7 @@ class BaseHandler(WebSocketHandler):
     @final
     def check_origin(self, origin):
         load_dotenv()
-        allowed_origins = os.getenv('ALLOWED_ORIGINS', 'localhost')
+        allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:4200,http://rutai.kia.prz.edu.pl')
 
         allowed_origins_list = allowed_origins.split(',')
         if origin in allowed_origins_list:
@@ -82,18 +84,19 @@ class BaseHandler(WebSocketHandler):
         if self.last_message_time is not None and time.time() - self.last_message_time <= 0.045: return
         self.last_message_time = time.time()
 
-        game_state = json.loads(message)
+        game_state_json = json.loads(message)
+        game_state = SocketData(**game_state_json)
         self.process_game_state(game_state)
 
         move = self.choose_move(game_state)
         self.write_message(json.dumps(move))
 
     @abstractmethod
-    def process_game_state(self, game_state):
+    def process_game_state(self, game_state: SocketData):
         pass
 
     @abstractmethod
-    def choose_move(self, data: dict) -> dict:
+    def choose_move(self, data: SocketData) -> dict[str, Any]:
         raise NotImplementedError
 
     @abstractmethod

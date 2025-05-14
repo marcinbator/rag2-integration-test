@@ -1,13 +1,12 @@
 import {AuthEndpointsServiceMock} from "./auth-endpoint.mock.service";
-
-type TExchangeData = Record<string, unknown>;
+import {ISocketData} from "./ISocketData";
 
 export class AiSocketService {
     private _socket!: WebSocket | null;
     private isSocketConnected = false;
     private _sendingIntervalID: unknown | null = null;
     private isDataSendingActive = false;
-    private _dataToSend: TExchangeData = {};
+    private _dataToSend!: ISocketData;
     private _previousData = "";
 
     public isDataExchangeDesired = false;
@@ -40,7 +39,7 @@ export class AiSocketService {
 
     public startDataExchange = (
         sendingInterval: number,
-        expectedDataToReceive: TExchangeData,
+        expectedDataToReceive: Record<string, unknown>,
         playerId: number
     ): void => {
         this.isDataExchangeDesired = true;
@@ -65,7 +64,7 @@ export class AiSocketService {
 
     public resumeDataExchange = (
         sendingInterval: number,
-        expectedDataToReceive: TExchangeData,
+        expectedDataToReceive: Record<string, unknown>,
         playerId: number
     ): void => {
         if (!this.isDataExchangeDesired) return;
@@ -76,19 +75,7 @@ export class AiSocketService {
         }, sendingInterval);
     };
 
-    public getSocket(): WebSocket | null {
-        return this._socket;
-    }
-
-    public getIsSocketConnected(): boolean {
-        return this.isSocketConnected;
-    }
-
-    public getIsDataSendingActive(): boolean {
-        return this.isDataSendingActive;
-    }
-
-    public setDataToSend(data: TExchangeData): void {
+    public setDataToSend(data: ISocketData): void {
         this._dataToSend = data;
     }
 
@@ -100,10 +87,6 @@ export class AiSocketService {
             this._socket.close();
             this._socket = null;
         }
-    }
-
-    public getSocketPing(): number {
-        return this._ping;
     }
 
     //
@@ -147,8 +130,8 @@ export class AiSocketService {
     }
 
     private sendDataToSocket(
-        dataToSend: TExchangeData,
-        expectedDataToReceive: TExchangeData,
+        dataToSend: ISocketData,
+        expectedDataToReceive: Record<string, unknown>,
         playerId: number
     ): void {
         if (this._socket && this.isSocketConnected) {

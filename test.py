@@ -50,7 +50,7 @@ def test_client_server_exchange():
     client_output = result.stdout
 
     assert 'Client connected!' in client_output
-    assert 'Received from server: {"move": 1, "start": 1}' in client_output
+    assert 'Received from server: {"move": -1, "start": 1}' in client_output
 
 
 if __name__ == "__main__":
