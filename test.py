@@ -104,11 +104,11 @@ def run_server():
     return process
 
 
-def run_client(interval, socket_max_open_time, update_timestamp):
+def run_client(interval, socket_max_open_time, update_timestamp, custom_data_to_send_fields_sequence):
     timestamp = time.strftime('%H:%M:%S')
     
     process = subprocess.Popen(
-        ["node", "client/dist/client.test.js", str(interval), str(socket_max_open_time), update_timestamp],
+        ["node", "client/dist/main.js", str(interval), str(socket_max_open_time), update_timestamp, custom_data_to_send_fields_sequence],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -137,10 +137,12 @@ def test_client_server_exchange():
 
         build_client()
 
-        interval = 1000
+        interval = 800
         socket_max_open_time = 3000
         update_timestamp = "true"
-        run_client(interval, socket_max_open_time, update_timestamp)
+        custom_data_to_send_fields_sequence = '[{"leftPaddleY": 342341324, "rightPaddleY": 123456789}, {"leftPaddleY": 213,"rightPaddleY": 2341432124}]'
+        
+        run_client(interval, socket_max_open_time, update_timestamp, custom_data_to_send_fields_sequence)
 
         print(f"{YELLOW}[SERVER] Stopping server...{RESET}")
         server_process.terminate()
@@ -164,10 +166,6 @@ def test_client_server_exchange():
                     lines.append({'content': line, 'type': 'server'})
                 else:
                     lines.append({'content': line, 'type': 'other'})
-        
-        print("Lines in order:")
-        for i, line in enumerate(lines):
-            print(f"  {i+1}. [{line['type'].upper()}] {line['content']}")
         
         client_lines = [line['content'] for line in lines if line['type'] == 'client']
         server_lines = [line['content'] for line in lines if line['type'] == 'server']
