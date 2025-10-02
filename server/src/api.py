@@ -9,18 +9,10 @@ import requests
 from dotenv import load_dotenv
 from tornado.websocket import WebSocketHandler
 
-from server.src.socket_data import SocketData
+from src.socket_data import SocketData
 
 
 guest_users = 0
-
-
-def log_server(message):
-    YELLOW = '\033[93m'
-    RESET = '\033[0m'
-
-    timestamp = time.strftime('%H:%M:%S')
-    print(f"{YELLOW}[SERVER {timestamp}] {message}{RESET}")
 
 
 def verify_jwt(token):
@@ -33,10 +25,10 @@ def verify_jwt(token):
 
     try:
         response = requests.get(TOKEN_VERIFY_URL, headers=headers, timeout=2)
-        log_server(f"JWT verification response: {response}")
+        print(f"JWT verification response: {response}")
         return response.status_code == 200
     except requests.RequestException as e:
-        log_server(f"JWT verification failed: {e}")
+        print(f"JWT verification failed: {e}")
         return False
 
 
@@ -52,7 +44,7 @@ class BaseHandler(WebSocketHandler):
         allowed_origins_list = allowed_origins.split(',')
         if origin in allowed_origins_list:
             return True
-        log_server(f"Origin {origin} not allowed")
+        print(f"Origin {origin} not allowed")
         return False
 
     @final
@@ -66,15 +58,15 @@ class BaseHandler(WebSocketHandler):
 
         if not token or not verify_jwt(token):
             if guest_users >= int(ALLOWED_GUEST_USERS):
-                log_server("Max guest limit exceeded")
+                print("Max guest limit exceeded")
                 self.close()
                 return
             guest_users += 1
             self.is_guest = True
-            log_server("WebSocket connection opened as guest")
+            print("WebSocket connection opened as guest")
         else:
             self.is_guest = False
-            log_server("WebSocket connection opened as authenticated")
+            print("WebSocket connection opened as authenticated")
 
     @final
     def on_close(self):
@@ -82,9 +74,9 @@ class BaseHandler(WebSocketHandler):
 
         if self.is_guest:
             guest_users -= 1
-            log_server(f"Guest user disconnected. Remaining guest users: {guest_users}")
+            print(f"Guest user disconnected. Remaining guest users: {guest_users}")
         else:
-            log_server("User disconnected")
+            print("User disconnected")
 
         self.after_close()
 
@@ -93,13 +85,13 @@ class BaseHandler(WebSocketHandler):
         if self.last_message_time is not None and time.time() - self.last_message_time <= 0.045: return
         self.last_message_time = time.time()
 
-        log_server(f"Received message: {message}")
+        print(f"Received message: {message}")
         game_state_json = json.loads(message)
         game_state = SocketData(**game_state_json)
         self.process_game_state(game_state)
 
         move = self.choose_move(game_state)
-        log_server(f"Sending response: {json.dumps(move)}")
+        print(f"Sending response: {json.dumps(move)}")
         self.write_message(json.dumps(move))
 
     @abstractmethod

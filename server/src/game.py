@@ -1,7 +1,7 @@
 from typing import Any
 
-from server.src.socket_data import SocketData
-from server.src.api import BaseHandler
+from src.socket_data import SocketData
+from src.api import BaseHandler
 
 
 
