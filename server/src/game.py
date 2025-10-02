@@ -1,7 +1,8 @@
 from typing import Any
 
-from server.api import BaseHandler
-from server.socket_data import SocketData
+from server.src.socket_data import SocketData
+from server.src.api import BaseHandler
+
 
 
 class PongBot(BaseHandler):

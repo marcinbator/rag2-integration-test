@@ -4,12 +4,13 @@ import subprocess
 import threading
 import time
 import sys
-
+import argparse
+from server.main import start_server, stop_server
 import tornado.ioloop
 from dotenv import load_dotenv
 from tornado.web import Application
 
-from server.game import PongBot
+from server.src.game import PongBot
 
 YELLOW = '\033[93m'
 BLUE = '\033[94m'
@@ -31,14 +32,6 @@ class TeeOutput:
     def flush(self):
         self.original_stdout.flush()
         self.file.flush()
-
-def start_server():    
-    app = Application([
-        (r"/ws/test/", PongBot)
-    ], websocket_ping_interval=10, websocket_ping_timeout=30)
-    app.listen(8000)
-
-    tornado.ioloop.IOLoop.current().start()
 
 
 
@@ -86,11 +79,11 @@ def build_client():
     print(f"{BLUE}[BUILD] TypeScript build completed{RESET}")
 
 
-def run_client():
+def run_client(interval, socket_max_open_time, update_timestamp):
     timestamp = time.strftime('%H:%M:%S')
     
     process = subprocess.Popen(
-        ["node", "client/dist/client.test.js"],
+        ["node", "client/dist/client.test.js", str(interval), str(socket_max_open_time), update_timestamp],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -119,9 +112,13 @@ def test_client_server_exchange():
         time.sleep(1)
 
         build_client()
-        run_client()
 
-        tornado.ioloop.IOLoop.current().stop()
+        interval = 1000
+        socket_max_open_time = 3000
+        update_timestamp = "true"
+        run_client(interval, socket_max_open_time, update_timestamp)
+
+        stop_server()
         
         sys.stdout = original_stdout
         print("Output has been saved to output.txt")
@@ -159,4 +156,13 @@ def test_client_server_exchange():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Run client-server integration test')
+    parser.add_argument('--interval', type=int, default=1000, 
+                        help='Data exchange interval in milliseconds (default: 1000)')
+    parser.add_argument('--socket-max-open-time', type=int, default=3000,
+                        help='Maximum time to keep socket open in milliseconds (default: 3000)')
+    
+    args = parser.parse_args()
+    
+    print(f"Running test with interval: {args.interval}ms, socket max open time: {args.socket_max_open_time}ms")
     test_client_server_exchange()

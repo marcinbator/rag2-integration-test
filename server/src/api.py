@@ -9,7 +9,7 @@ import requests
 from dotenv import load_dotenv
 from tornado.websocket import WebSocketHandler
 
-from server.socket_data import SocketData
+from server.src.socket_data import SocketData
 
 
 guest_users = 0

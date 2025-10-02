@@ -7,7 +7,12 @@ export class AuthEndpointsServiceMock {
   } {
     return {
       subscribe: ({ next, error }) => {
-        next(true);
+        const isValid = localStorage.getItem("jwtToken") !== null;
+        if (isValid) {
+          next(true);
+        } else {
+          error();
+        }
       },
     };
   }
