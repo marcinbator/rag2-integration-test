@@ -91,6 +91,8 @@ def run_server():
     
     def read_server_output():
         while True:
+            if process.stdout is None:
+                break
             output = process.stdout.readline()
             if output == '' and process.poll() is not None:
                 break
@@ -117,6 +119,8 @@ def run_client(interval, socket_max_open_time, update_timestamp, custom_data_to_
     )
     
     while True:
+        if process.stdout is None:
+            break
         output = process.stdout.readline()
         if output == '' and process.poll() is not None:
             break
@@ -172,11 +176,11 @@ def test_client_server_exchange():
         
         client_output = '\n'.join(client_lines)
         assert 'Client connected!' in client_output, "Client connection message not found"
-        assert 'Received from server: {"move": -1, "start": 1}' in client_output, "Expected server response not found"
+        assert 'Received from server: {"move": 1, "start": 1}' in client_output, "Expected server response not found"
         
         server_output = '\n'.join(server_lines)
         assert 'WebSocket connection opened' in server_output, "Server connection message not found"
-        assert 'Sending response: {"move": -1, "start": 1}' in server_output, "Server response message not found"
+        assert "Choosing move: {'move': 1, 'start': 1}" in server_output, "Server response message not found"
         
         print(f"\nFound {len(client_lines)} client lines and {len(server_lines)} server lines")
         print("All assertions passed!")

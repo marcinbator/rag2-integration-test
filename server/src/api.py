@@ -1,12 +1,12 @@
 import json
 import os
 import time
+import requests
+
 from abc import abstractmethod
 from typing import final, Any
-from urllib.parse import urlparse, parse_qs
-
-import requests
 from dotenv import load_dotenv
+from urllib.parse import urlparse, parse_qs
 from tornado.websocket import WebSocketHandler
 
 from src.socket_data import SocketData
@@ -20,7 +20,7 @@ def verify_jwt(token):
         return True
 
     load_dotenv()
-    TOKEN_VERIFY_URL = os.getenv('TOKEN_VERIFY_URL')
+    TOKEN_VERIFY_URL = os.getenv('TOKEN_VERIFY_URL', 'http://localhost:8000/api/token/verify/')
     headers = {"Authorization": "Bearer " + token}
 
     try:
@@ -48,13 +48,14 @@ class BaseHandler(WebSocketHandler):
         return False
 
     @final
-    def open(self):
-        global guest_users
-
-        query_params = parse_qs(urlparse(self.request.uri).query)
-        token = query_params.get("jwt", [None])[0]
+    def open(self, *args, **kwargs):
         load_dotenv()
         ALLOWED_GUEST_USERS = os.getenv('ALLOWED_GUEST_USERS', 5)
+
+        global guest_users
+
+        query_params = parse_qs(urlparse(self.request.uri).query) # type: ignore
+        token = query_params.get("jwt", [None])[0] # type: ignore
 
         if not token or not verify_jwt(token):
             if guest_users >= int(ALLOWED_GUEST_USERS):
@@ -85,13 +86,11 @@ class BaseHandler(WebSocketHandler):
         if self.last_message_time is not None and time.time() - self.last_message_time <= 0.045: return
         self.last_message_time = time.time()
 
-        print(f"Received message: {message}")
         game_state_json = json.loads(message)
         game_state = SocketData(**game_state_json)
         self.process_game_state(game_state)
 
         move = self.choose_move(game_state)
-        print(f"Sending response: {json.dumps(move)}")
         self.write_message(json.dumps(move))
 
     @abstractmethod

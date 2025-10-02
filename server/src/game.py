@@ -7,9 +7,10 @@ from src.api import BaseHandler
 
 class PongBot(BaseHandler):
     def process_game_state(self, game_state: SocketData):
-        pass
+        print(f"Received game state: {game_state}")
 
     def after_close(self):
+        print(f"WebSocket connection closed")
         pass
 
     def choose_move(self, data: SocketData) -> dict[str, Any]:
@@ -27,4 +28,7 @@ class PongBot(BaseHandler):
             else:
                 move = -1
 
-        return {'move': move, 'start': 1}
+        move = {'move': move, 'start': 1}
+        print(f"Choosing move: {move}")
+
+        return move
