@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 YELLOW = '\033[93m'
 BLUE = '\033[94m'
+GREEN = '\033[92m'
 RESET = '\033[0m'
 
 
@@ -68,14 +69,14 @@ def execute_client(interval, socket_max_open_time, update_timestamp, custom_data
     process.wait()
 
 
-def run_server():
-    print(f"{YELLOW}[SERVER] Starting Python server...{RESET}")
+def run_socket_server():
+    print(f"{YELLOW}[SOCKET_SERVER] Starting Python socket server...{RESET}")
     
     env = os.environ.copy()
     env['PYTHONUNBUFFERED'] = '1'
     
     process = subprocess.Popen(
-        [sys.executable, "-u", "server/main.py"],
+        [sys.executable, "-u", "socket_server/main.py"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -93,7 +94,40 @@ def run_server():
                 break
             if output:
                 timestamp = time.strftime('%H:%M:%S')
-                print(f"{YELLOW}[SERVER {timestamp}] {output.strip()}{RESET}")
+                print(f"{YELLOW}[SOCKET_SERVER {timestamp}] {output.strip()}{RESET}")
+    
+    server_thread = threading.Thread(target=read_server_output, daemon=True)
+    server_thread.start()
+    
+    return process
+
+
+def run_data_server():
+    print(f"{GREEN}[DATA_SERVER] Starting Python data server...{RESET}")
+    
+    env = os.environ.copy()
+    env['PYTHONUNBUFFERED'] = '1'
+    
+    process = subprocess.Popen(
+        [sys.executable, "-u", "data_server/main.py"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=0,
+        universal_newlines=True,
+        env=env
+    )
+    
+    def read_server_output():
+        while True:
+            if process.stdout is None:
+                break
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            if output:
+                timestamp = time.strftime('%H:%M:%S')
+                print(f"{GREEN}[DATA_SERVER {timestamp}] {output.strip()}{RESET}")
     
     server_thread = threading.Thread(target=read_server_output, daemon=True)
     server_thread.start()
@@ -102,7 +136,16 @@ def run_server():
 
 
 def stop_server(process):
-    print(f"{YELLOW}[SERVER] Stopping server...{RESET}")
+    print(f"{YELLOW}[SOCKET_SERVER] Stopping server...{RESET}")
+    process.terminate()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+
+
+def stop_data_server(process):
+    print(f"{GREEN}[DATA_SERVER] Stopping data server...{RESET}")
     process.terminate()
     try:
         process.wait(timeout=5)

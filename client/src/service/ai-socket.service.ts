@@ -1,5 +1,5 @@
 import { ISocketData } from "../socket-data";
-import { AuthEndpointsServiceMock } from "./auth-endpoint.mock.service";
+import { AuthEndpointsServiceMock } from "../mock/auth-endpoint.mock";
 
 export class AiSocketService {
   private readonly _INACTIVITY_TIMEOUT = 60000;

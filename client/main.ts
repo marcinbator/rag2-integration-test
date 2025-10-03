@@ -1,4 +1,5 @@
 import { AiSocketService } from "./src/service/ai-socket.service";
+import { GameRecordService } from "./src/service/game-record.service";
 import WebSocket from "ws";
 import { dataToSend, expectedResponse } from "./src/socket-data";
 
@@ -24,9 +25,10 @@ const customDataToSendFieldsSequence: Record<string, any>[] = args[3]
 let sequenceIndex = 0;
 
 const socketUrl = "http://localhost:8000/ws/test/";
-const service = new AiSocketService();
+const aiSocketService = new AiSocketService();
+const gameRecordService = new GameRecordService();
 
-function updateSocketData() {
+function getDataFromGame() {
   const newDataToSend = dataToSend;
 
   if (updateTimestamp) {
@@ -48,30 +50,35 @@ function updateSocketData() {
 }
 
 function main() {
-  service.dataToSend = updateSocketData();
+  const currentGameStateData = getDataFromGame();
+  aiSocketService.dataToSend = currentGameStateData;
+  gameRecordService.currentData = currentGameStateData;
 
-  service.connect(
+  aiSocketService.connect(
     socketUrl,
     () => {
       console.log("Client connected!");
 
-      service.startDataExchange(interval, expectedResponse, 0);
+      aiSocketService.startDataExchange(interval, expectedResponse, 0);
 
       setTimeout(() => {
         console.log("Closing socket...");
-        service.closeSocket();
+        aiSocketService.closeSocket();
       }, socketMaxOpenTime);
     },
     (event) => {
       console.log("Received from server:", event.data);
 
-      service.dataToSend = updateSocketData();
+      const currentGameStateData = getDataFromGame();
+      aiSocketService.dataToSend = currentGameStateData;
+      gameRecordService.currentData = currentGameStateData;
     },
     (e: unknown) => {
       console.error("Connection error: ", e);
     },
     () => {
       console.log("Socket closed.");
+      gameRecordService.sendDataset();
     }
   );
 }

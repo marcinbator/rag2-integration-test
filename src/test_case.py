@@ -15,7 +15,7 @@ class TestCase:
         if verbose:
             print(f"Running test case: {self.name}")
         
-        lines, client_lines, server_lines = run_test(
+        lines, client_lines, socket_server_lines, data_server_lines = run_test(
             interval=self.interval,
             socket_max_open_time=self.socket_max_open_time,
             update_timestamp=self.update_timestamp,
@@ -25,7 +25,7 @@ class TestCase:
         
         try:
             for assertion_lambda, error_message in self.assertions:
-                if not assertion_lambda(lines, client_lines, server_lines):
+                if not assertion_lambda(lines, client_lines, socket_server_lines, data_server_lines):
                     raise AssertionError(error_message)
             
             print(f"Test '{self.name}' passed!")

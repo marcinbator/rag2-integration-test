@@ -3,16 +3,17 @@ from src.test_case import TestCase
 
 test_cases = [
     TestCase(
-        name="Single exchange test",
+        name="Single exchange and data save test",
         interval=2000,
         socket_max_open_time=3000,
         update_timestamp="true",
         custom_data_to_send_fields_sequence='[]',
         assertions=[
-            (lambda lines, client_lines, server_lines: any('Client connected!' in line for line in client_lines), "Client connection message not found"),
-            (lambda l, c, s: any('WebSocket connection opened' in line for line in s), "Server connection message not found"),
-            (lambda l, c, s: sum(1 for line in s if "Choosing move: {'move': -1, 'start': 1}" in line) == 1, "Server response message should appear once"),
-            (lambda l, c, s: sum(1 for line in c if 'Received from server: {"move": -1, "start": 1}' in line) == 1, "Expected server response not found"),
+            (lambda lines, client_lines, socket_server_lines, data_server_lines: any('Client connected!' in line for line in client_lines), "Client connection message not found"),
+            (lambda l, c, s, d: any('WebSocket connection opened' in line for line in s), "Server connection message not found"),
+            (lambda l, c, s, d: sum(1 for line in s if "Choosing move: {'move': -1, 'start': 1}" in line) == 1, "Server response message should appear once"),
+            (lambda l, c, s, d: sum(1 for line in c if 'Received from server: {"move": -1, "start": 1}' in line) == 1, "Expected server response not found"),
+            (lambda l, c, s, d: any('Received data' in line for line in d), "Data server success message not found"),
         ]
     ),
     TestCase(
@@ -22,8 +23,8 @@ test_cases = [
         update_timestamp="true",
         custom_data_to_send_fields_sequence='[{"leftPaddleY": 70, "ballY": 0}, {"leftPaddleY": 50,"ballY": 200}]',
         assertions=[
-            (lambda l, c, s: sum(1 for line in c if 'Received from server: {"move": 1, "start": 1}' in line) == 1, "Wrong 1st server response"),
-            (lambda l, c, s: sum(1 for line in c if 'Received from server: {"move": -1, "start": 1}' in line) == 1, "Wrong 2nd server response")
+            (lambda l, c, s, d: sum(1 for line in c if 'Received from server: {"move": 1, "start": 1}' in line) == 1, "Wrong 1st server response"),
+            (lambda l, c, s, d: sum(1 for line in c if 'Received from server: {"move": -1, "start": 1}' in line) == 1, "Wrong 2nd server response")
         ]
     ),
     TestCase(
@@ -33,7 +34,7 @@ test_cases = [
         update_timestamp="true",
         custom_data_to_send_fields_sequence='[{"leftPaddleY": 70, "ballY": 0}, {"leftPaddleY": 50,"ballY": 200}]',
         assertions=[
-            (lambda l, c, s: (
+            (lambda l, c, s, d: (
                 [i for i, line in enumerate(c) if 'Received from server: {"move": 1, "start": 1}' in line][0] <
                 [i for i, line in enumerate(c) if 'Received from server: {"move": -1, "start": 1}' in line][0]
             ), "Wrong order of server responses"),
@@ -46,7 +47,7 @@ test_cases = [
         update_timestamp="true",
         custom_data_to_send_fields_sequence='[]',
         assertions=[
-            (lambda l, c, s: sum(1 for line in c if 'Received from server' in line) > 25, "Too few responses:"),
+            (lambda l, c, s, d: sum(1 for line in c if 'Received from server' in line) > 25, "Too few responses:"),
         ]
     ),
 ]
