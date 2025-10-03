@@ -7,7 +7,9 @@ from src.write_save_output import WriteSaveOutput
 
 
 def run_test(interval: int, socket_max_open_time: int, update_timestamp: str, custom_data_to_send_fields_sequence: str, verbose: bool = True, output_temporary: bool = True):
-    file_name = "output_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".txt"
+    os.makedirs("test_outputs", exist_ok=True)
+    
+    file_name = "test_outputs/output_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".txt"
     with open(file_name, "w", encoding="utf-8") as output_file:
         original_stdout = sys.stdout
         sys.stdout = WriteSaveOutput(output_file, original_stdout, verbose)

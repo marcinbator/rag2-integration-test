@@ -1,30 +1,66 @@
+from src.test_case import TestCase
 
-from src.test_runner import run_test
 
-
-def test_basic_functionality():
-    interval = 800
-    socket_max_open_time = 3000
-    update_timestamp = "true"
-    custom_data_to_send_fields_sequence = '[{"leftPaddleY": 342341324, "rightPaddleY": 123456789}, {"leftPaddleY": 213,"rightPaddleY": 2341432124}]'
-
-    lines, client_lines, server_lines = run_test(
-        interval=interval,
-        socket_max_open_time=socket_max_open_time,
-        update_timestamp=update_timestamp,
-        custom_data_to_send_fields_sequence=custom_data_to_send_fields_sequence,
-        verbose=True
-    )
-        
-    client_output = '\n'.join(client_lines)
-    assert 'Client connected!' in client_output, "Client connection message not found"
-    assert 'Received from server: {"move": 1, "start": 1}' in client_output, "Expected server response not found"
-    
-    server_output = '\n'.join(server_lines)
-    assert 'WebSocket connection opened' in server_output, "Server connection message not found"
-    assert "Choosing move: {'move': 1, 'start': 1}" in server_output, "Server response message not found"
-        
+test_cases = [
+    TestCase(
+        name="Single exchange test",
+        interval=2000,
+        socket_max_open_time=3000,
+        update_timestamp="true",
+        custom_data_to_send_fields_sequence='[]',
+        assertions=[
+            (lambda lines, client_lines, server_lines: any('Client connected!' in line for line in client_lines), "Client connection message not found"),
+            (lambda l, c, s: any('WebSocket connection opened' in line for line in s), "Server connection message not found"),
+            (lambda l, c, s: sum(1 for line in s if "Choosing move: {'move': -1, 'start': 1}" in line) == 1, "Server response message should appear once"),
+            (lambda l, c, s: sum(1 for line in c if 'Received from server: {"move": -1, "start": 1}' in line) == 1, "Expected server response not found"),
+        ]
+    ),
+    TestCase(
+        name="Test if moves are chosen correctly",
+        interval=1200,
+        socket_max_open_time=3000,
+        update_timestamp="true",
+        custom_data_to_send_fields_sequence='[{"leftPaddleY": 70, "ballY": 0}, {"leftPaddleY": 50,"ballY": 200}]',
+        assertions=[
+            (lambda l, c, s: sum(1 for line in c if 'Received from server: {"move": 1, "start": 1}' in line) == 1, "Wrong 1st server response"),
+            (lambda l, c, s: sum(1 for line in c if 'Received from server: {"move": -1, "start": 1}' in line) == 1, "Wrong 2nd server response")
+        ]
+    ),
+    TestCase(
+        name="Test if server responses are in correct order",
+        interval=1200,
+        socket_max_open_time=3000,
+        update_timestamp="true",
+        custom_data_to_send_fields_sequence='[{"leftPaddleY": 70, "ballY": 0}, {"leftPaddleY": 50,"ballY": 200}]',
+        assertions=[
+            (lambda l, c, s: (
+                [i for i, line in enumerate(c) if 'Received from server: {"move": 1, "start": 1}' in line][0] <
+                [i for i, line in enumerate(c) if 'Received from server: {"move": -1, "start": 1}' in line][0]
+            ), "Wrong order of server responses"),
+        ]
+    ),
+    TestCase(
+        name="Test latency",
+        interval=100,
+        socket_max_open_time=3000,
+        update_timestamp="true",
+        custom_data_to_send_fields_sequence='[]',
+        assertions=[
+            (lambda l, c, s: sum(1 for line in c if 'Received from server' in line) > 25, "Too few responses:"),
+        ]
+    ),
+]
 
 
 if __name__ == "__main__":
-    test_basic_functionality()
+    passed = 0
+    failed = 0
+    
+    for test_case in test_cases:
+        if test_case.run(verbose=True):
+            passed += 1
+        else:
+            failed += 1
+    
+    print(f"Test Results: {passed} passed, {failed} failed")
+    
