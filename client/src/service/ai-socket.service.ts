@@ -41,27 +41,27 @@ export class AiSocketService {
     });
   }
 
-  public startDataExchange = (
+  public startDataExchange(
     sendingInterval: number,
     expectedDataToReceive: Record<string, unknown>,
     playerId: number
-  ): void => {
+  ): void {
     this._isDataExchangeDesired = true;
     this.resumeDataExchange(sendingInterval, expectedDataToReceive, playerId);
-  };
+  }
 
-  public pauseDataExchange = (): void => {
+  public pauseDataExchange(): void {
     if (!this._sendingIntervalID) return;
 
     this._isDataSendingActive = false;
     clearInterval(this._sendingIntervalID as number);
-  };
+  }
 
-  public resumeDataExchange = (
+  public resumeDataExchange(
     sendingInterval: number,
     expectedDataToReceive: Record<string, unknown>,
     playerId: number
-  ): void => {
+  ): void {
     if (!this._isDataExchangeDesired) return;
 
     this._isDataSendingActive = true;
@@ -70,12 +70,12 @@ export class AiSocketService {
       this.sendDataToSocket(this._dataToSend, expectedDataToReceive, playerId);
       this._lastPingSentTime = Date.now();
     }, sendingInterval);
-  };
+  }
 
-  public stopDataExchange = (): void => {
+  public stopDataExchange(): void {
     this._isDataExchangeDesired = false;
     this.pauseDataExchange();
-  };
+  }
 
   public closeSocket(): void {
     if (this._socket) {

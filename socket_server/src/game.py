@@ -6,12 +6,11 @@ from src.api import BaseHandler
 
 
 class PongBot(BaseHandler):
-    def process_game_state(self, game_state: SocketData):
-        print(f"Received game state: {game_state}")
+    def on_open(self):
+        print("Websocket pong connection opened")
 
-    def after_close(self):
-        print(f"WebSocket connection closed")
-        pass
+    def process_game_state(self, game_state: SocketData):
+        print(f"Received pong game state: {game_state}")
 
     def choose_move(self, data: SocketData) -> dict[str, Any]:
         player = data.playerId

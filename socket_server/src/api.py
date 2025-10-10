@@ -69,6 +69,8 @@ class BaseHandler(WebSocketHandler):
             self.is_guest = False
             print("WebSocket connection opened as authenticated")
 
+        self.on_open()
+
     @final
     def on_close(self):
         global guest_users
@@ -92,6 +94,10 @@ class BaseHandler(WebSocketHandler):
 
         move = self.choose_move(game_state)
         self.write_message(json.dumps(move))
+
+    @abstractmethod
+    def on_open(self):
+        pass
 
     @abstractmethod
     def process_game_state(self, game_state: SocketData):
