@@ -1,4 +1,4 @@
-import { ISocketData } from "../socket-data";
+import { GameState } from "../socket-data";
 import { AuthEndpointsServiceMock } from "../mock/auth-endpoint.mock";
 
 export class AiSocketService {
@@ -13,10 +13,10 @@ export class AiSocketService {
   private _lastPingSentTime = 0;
   private _inactivityTimeoutID: ReturnType<typeof setTimeout> | null = null;
   private _authEndpointsService = new AuthEndpointsServiceMock();
-  private _dataToSend!: ISocketData;
+  private _dataToSend!: GameState;
   private _isDataExchangeDesired = false;
 
-  public set dataToSend(data: ISocketData) {
+  public set dataToSend(data: GameState) {
     this._dataToSend = data;
   }
 
@@ -105,6 +105,9 @@ export class AiSocketService {
     });
     this._socket.addEventListener("message", (event) => {
       onMessage(event);
+
+      // aktualizacja stanu gry ...
+
       this._ping = Date.now() - this._lastPingSentTime;
       this.resetInactivityTimeout();
     });
@@ -129,26 +132,26 @@ export class AiSocketService {
   }
 
   private sendDataToSocket(
-    dataToSend: ISocketData,
+    dataToSend: GameState,
     expectedDataToReceive: Record<string, unknown>,
     playerId: number
   ): void {
-    if (this._socket && this._isSocketConnected) {
-      const data: string = JSON.stringify({
-        name: dataToSend["name"],
-        playerId: playerId,
-        state: dataToSend["state"],
-        players: dataToSend["players"],
-        expectedInput: expectedDataToReceive,
-      });
+    if (!this._socket || !this._isSocketConnected) return;
 
-      if (data != this._previousData) {
-        this._socket.send(data);
-        this.resetInactivityTimeout();
-      }
+    const data: string = JSON.stringify({
+      name: dataToSend["name"],
+      playerId: playerId,
+      state: dataToSend["state"],
+      players: dataToSend["players"],
+      expectedInput: expectedDataToReceive,
+    });
 
-      this._previousData = data;
+    if (data != this._previousData) {
+      this._socket.send(data);
+      this.resetInactivityTimeout();
     }
+
+    this._previousData = data;
   }
 
   private resetInactivityTimeout(): void {

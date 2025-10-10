@@ -1,4 +1,4 @@
-export interface ISocketData {
+export interface GameState {
   name: string;
   playerId: number;
   state: Record<string, any>;
@@ -9,7 +9,7 @@ export interface ISocketData {
 
 //
 
-export const dataToSend: ISocketData = {
+export const dataToSend: GameState = {
   playerId: 0,
   state: {
     leftPaddleY: 225,

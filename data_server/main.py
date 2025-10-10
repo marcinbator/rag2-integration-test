@@ -15,6 +15,8 @@ class GameRecordService:
         self.game_states: list[GameState] = []
         
         self._register_routes()
+
+        self.app.run(host=self.host, port=self.port, debug=self.debug)
     
     def _register_routes(self):
         self.app.add_url_rule('/game-states', 'receive_data', self.receive_data, methods=['POST'])
@@ -75,12 +77,7 @@ class GameRecordService:
                 "status": "error",
                 "message": f"No game state found for id {data_id}"
             }), 404
-    
-    def run(self):        
-        self.app.run(host=self.host, port=self.port, debug=self.debug)
-
 
 
 if __name__ == '__main__':
     server = GameRecordService(host='localhost', port=8080, debug=False)
-    server.run()
