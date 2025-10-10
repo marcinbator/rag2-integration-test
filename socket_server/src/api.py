@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from urllib.parse import urlparse, parse_qs
 from tornado.websocket import WebSocketHandler
 
-from src.socket_data import SocketData
+from src.game_state import GameState
 
 
 guest_users = 0
@@ -32,7 +32,7 @@ def verify_jwt(token):
         return False
 
 
-class BaseHandler(WebSocketHandler):
+class BaseWebSocketHandler(WebSocketHandler):
     is_guest = False
     last_message_time = None
 
@@ -89,7 +89,7 @@ class BaseHandler(WebSocketHandler):
         self.last_message_time = time.time()
 
         game_state_json = json.loads(message)
-        game_state = SocketData(**game_state_json)
+        game_state = GameState(**game_state_json)
         self.process_game_state(game_state)
 
         move = self.choose_move(game_state)
@@ -100,11 +100,11 @@ class BaseHandler(WebSocketHandler):
         pass
 
     @abstractmethod
-    def process_game_state(self, game_state: SocketData):
+    def process_game_state(self, game_state: GameState):
         pass
 
     @abstractmethod
-    def choose_move(self, data: SocketData) -> dict[str, Any]:
+    def choose_move(self, data: GameState) -> dict[str, Any]:
         raise NotImplementedError
 
     @abstractmethod

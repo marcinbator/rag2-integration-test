@@ -1,18 +1,18 @@
 from typing import Any
 
-from src.socket_data import SocketData
-from src.api import BaseHandler
+from src.game_state import GameState
+from src.api import BaseWebSocketHandler
 
 
 
-class PongBot(BaseHandler):
+class PongWebSocketHandler(BaseWebSocketHandler):
     def on_open(self):
         print("Websocket pong connection opened")
 
-    def process_game_state(self, game_state: SocketData):
+    def process_game_state(self, game_state: GameState):
         print(f"Received pong game state: {game_state}")
 
-    def choose_move(self, data: SocketData) -> dict[str, Any]:
+    def choose_move(self, data: GameState) -> dict[str, Any]:
         player = data.playerId
         state = data.state
 

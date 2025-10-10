@@ -13,7 +13,7 @@ test_cases = [
             (lambda l, c, s, d: any('WebSocket connection opened' in line for line in s), "Server connection message not found"),
             (lambda l, c, s, d: sum(1 for line in s if "Choosing move: {'move': -1, 'start': 1}" in line) == 1, "Server response message should appear once"),
             (lambda l, c, s, d: sum(1 for line in c if 'Received from server: {"move": -1, "start": 1}' in line) == 1, "Expected server response not found"),
-            (lambda l, c, s, d: any('Received data' in line for line in d), "Data server success message not found"),
+            (lambda l, c, s, d: any('Received game state' in line for line in d), "Data server success message not found"),
         ]
     ),
     TestCase(

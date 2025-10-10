@@ -1,12 +1,12 @@
 import tornado.ioloop
 from tornado.web import Application
 
-from src.game import PongBot
+from src.game import PongWebSocketHandler
 
 
 def start_server():
     app = Application([
-        (r"/ws/test/", PongBot)
+        (r"/ws/test/", PongWebSocketHandler)
     ])
     app.listen(8000)
 

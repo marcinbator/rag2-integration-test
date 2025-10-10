@@ -3,7 +3,7 @@ from typing import Any
 from pydantic import BaseModel
 
 
-class SocketData(BaseModel):
+class GameState(BaseModel):
     name: str
     playerId: int
     state: dict[str, Any]

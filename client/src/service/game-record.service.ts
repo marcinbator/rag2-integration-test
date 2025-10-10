@@ -2,7 +2,7 @@ import { ISocketData } from "../socket-data";
 
 export class GameRecordService {
   private _dataSet: ISocketData[] = [];
-  private readonly DATA_SERVER_URL = "http://localhost:8080/data";
+  private readonly DATA_SERVER_URL = "http://localhost:8080/game-states";
 
   public set currentData(data: ISocketData) {
     this._dataSet.push(data);
